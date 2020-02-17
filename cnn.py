@@ -116,7 +116,7 @@ class cnn:
         dp2dc2 = np.zeros((self.kernel2num, self.img_size, self.img_size))  # 10, 14, 14
         # make gradient map
         for depth in range(self.kernel2num):
-            for height in range(0, self.img_size, self.pool_size): #change to pooling layer's 'size'
+            for height in range(0, self.img_size, self.pool_size):
                 for width in range(0, self.img_size, self.pool_size):
                     area = self.c2[depth][height:height + self.pool_size, width:width + self.pool_size]
                     if area.any() > 0:  # if their exists positive values
@@ -133,12 +133,16 @@ class cnn:
             for depth in range(self.kernel1num):  # gradient's channel
                 for height in range(self.kernel_size):  # height interval
                     for width in range(self.kernel_size):  # width interval
+                        '''
                         tmp = 0
                         for kernel_height in range(dp2dc2.shape[1]):
                             for kernel_width in range(dp2dc2.shape[2]):
                                 tmp += img[depth][height + kernel_height, width + kernel_width] * dp2dc2[n, kernel_height, kernel_width]
-                        dc2dk2 = np.append(dc2dk2, tmp) # 10 * 5 * 3 * 3
-        dc2dk2 = np.reshape(dc2dk2, (self.kernel2num, self.kernel1num, self.kernel_size, self.kernel_size)) # num, depth, width, height
+                        '''
+                        area = img[depth][height:height+dp2dc2.shape[1], width:width+dp2dc2.shape[2]]
+                        tmp = np.sum(np.ravel(area, order='C') * np.ravel(dp2dc2[n], order='C'))
+                        dc2dk2 = np.append(dc2dk2, tmp)  # 10 * 5 * 3 * 3
+        dc2dk2 = np.reshape(dc2dk2, (self.kernel2num, self.kernel1num, self.kernel_size, self.kernel_size)) # num, depth, height, width
         # convolution kernel(rotation 180') & gradient to compute input's gradient
         dc2dp1 = np.array([])
         for n in range(self.kernel2num):  # kernel num
@@ -156,7 +160,7 @@ class cnn:
         dc2dp1 = dc2dp1.sum(axis=0) / self.kernel2num  # mean of each kernel's gradient
         # 1st ReLU & maxpooling layer's gradient
         self.img_size = self.img_size * 2  # img_size = 28
-        dp1dc1 = np.zeros((self.kernel1num, self.img_size, self.img_size))  # 3, 28, 28
+        dp1dc1 = np.zeros((self.kernel1num, self.img_size, self.img_size))  # 5, 28, 28
         # make gradient map
         for depth in range(self.kernel1num):
             for height in range(0, self.img_size, self.pool_size):
@@ -169,7 +173,7 @@ class cnn:
         # 1st convolution layer's gradient
         # calculate kernel's gradient
         img = np.reshape(self.train_set[0][index], (self.img_size, self.img_size))
-        img = np.pad(img, pad_width=padding, constant_values=(0))[1:-1]
+        img = np.pad(img, pad_width=padding, constant_values=(0))
         dc1dk1 = np.array([])
         for n in range(self.kernel1num):  # kernel num
             for height in range(self.kernel_size):  # kernel height
