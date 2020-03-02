@@ -1,5 +1,6 @@
 import pickle, gzip
 import numpy as np
+from tqdm import *
 
 class mlp:
     def __init__(self, lr=0.01):
@@ -59,7 +60,7 @@ class mlp:
             loss = 0
             #rearrange indexes
             indexes = np.random.permutation(len(self.train_set[1]))
-            for index in indexes:
+            for index in tqdm(indexes):
                 self.forward(index)
                 loss = loss + self.backward(index)
             print("epoch:{0}, loss:{1}, accuracy:{2}".format(i, loss / len(indexes), self.validation()))

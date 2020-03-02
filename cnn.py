@@ -59,11 +59,16 @@ class cnn:
             out = []
             for height in range(padding, img.shape[1] - padding):
                 for width in range(padding, img.shape[2] - padding):
+                    '''
                     tmp = 0
                     for depth in range(img.shape[0]):
                         area = img[depth, height - padding:height + padding + 1, width - padding:width + padding + 1]
                         tmp += np.sum(np.ravel(area, order='C') * np.ravel(k[n, depth], order='C'))
                     out.append(tmp)
+                    '''
+                    area = img[:, height - padding:height + padding + 1, width - padding:width + padding + 1]
+                    sum = np.sum(np.ravel(area, order='C') * np.ravel(k[n], order='C'))
+                    out.append(sum)
             out = out + kb[n]
             result.append(np.reshape(out, (self.img_size, self.img_size)))
 
@@ -119,7 +124,7 @@ class cnn:
             for height in range(0, self.img_size, self.pool_size):
                 for width in range(0, self.img_size, self.pool_size):
                     area = self.c2[depth][height:height + self.pool_size, width:width + self.pool_size]
-                    if area.any() > 0:  # if their exists positive values
+                    if area.all() != 0:  # if their exists positive values
                         maxloc = area.argmax()
                         # assign rear layer's gradient to maxpooling & ReLU layer's gradient
                         dp2dc2[depth, height + int(maxloc / 2), width + maxloc % 2] = grad[depth, int(height / 2), int(width / 2)]
@@ -133,12 +138,6 @@ class cnn:
             for depth in range(self.kernel1num):  # gradient's channel
                 for height in range(self.kernel_size):  # height interval
                     for width in range(self.kernel_size):  # width interval
-                        '''
-                        tmp = 0
-                        for kernel_height in range(dp2dc2.shape[1]):
-                            for kernel_width in range(dp2dc2.shape[2]):
-                                tmp += img[depth][height + kernel_height, width + kernel_width] * dp2dc2[n, kernel_height, kernel_width]
-                        '''
                         area = img[depth][height:height+dp2dc2.shape[1], width:width+dp2dc2.shape[2]]
                         tmp = np.sum(np.ravel(area, order='C') * np.ravel(dp2dc2[n], order='C'))
                         dc2dk2 = np.append(dc2dk2, tmp)  # 10 * 5 * 3 * 3
@@ -166,7 +165,7 @@ class cnn:
             for height in range(0, self.img_size, self.pool_size):
                 for width in range(0, self.img_size, self.pool_size):
                     area = self.c1[depth][height:height + self.pool_size, width:width + self.pool_size]
-                    if area.any() > 0:  # if their exists positive values
+                    if area.all != 0:  # if their exists positive values
                         maxloc = area.argmax()
                         # assign rear layer's gradient to maxpooling & ReLU layer's gradient
                         dp1dc1[depth, height + int(maxloc / 2), width + maxloc % 2] = dc2dp1[depth, int(height / 2), int(width / 2)]
