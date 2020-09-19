@@ -25,9 +25,9 @@ class cnn:
         self.pool_size = pool_size
         # cnn weights
         self.k1 = np.random.rand(kernel1num, 1, kernel_size, kernel_size) - 0.5 #kernel num, img channel, kernel size**2
-        self.kb1 = np.random.rand(kernel1num, img_size**2) - 0.5 #kernel num, output img size
+        self.kb1 = np.random.rand(kernel1num) - 0.5 #kernel num, output img size
         self.k2 = np.random.rand(kernel2num, kernel1num, kernel_size, kernel_size) - 0.5
-        self.kb2 = np.random.rand(kernel2num, int(img_size / pool_size)**2) - 0.5
+        self.kb2 = np.random.rand(kernel2num) - 0.5
         # fc weights
         self.w1 = np.random.rand(int(img_size/pool_size/pool_size)**2 * kernel2num, int(img_size/pool_size/pool_size)**2) - 0.5  # input * hidden
         self.b1 = np.random.rand(int(img_size/pool_size/pool_size)**2) - 0.5
@@ -186,9 +186,9 @@ class cnn:
         dp2dc2 = np.reshape(dp2dc2, (self.kernel2num, -1))
         # update weights
         self.k1 = self.k1 - self.lr * dc1dk1
-        self.kb1 = self.kb1 - self.lr * dp1dc1
+        self.kb1 = self.kb1 - self.lr * np.sum(dp1dc1)
         self.k2 = self.k2 - self.lr * dc2dk2
-        self.kb2 = self.kb2 - self.lr * dp2dc2
+        self.kb2 = self.kb2 - self.lr * np.sum(dp2dc2)
         self.w1 = self.w1 - self.lr * dw1
         self.b1 = self.b1 - self.lr * db1
         self.w2 = self.w2 - self.lr * dw2
